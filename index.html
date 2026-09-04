@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Quiz ADS - Estuda Comigo 🎓</title>
+<style>
+  :root{
+    --bg1:#0a1128;
+    --bg2:#001f54;
+    --bg3:#034078;
+    --accent:#fca311;
+    --good:#06d6a0;
+    --danger:#ef476f;
+    --white:#ffffff;
+    --card:#ffffff;
+    --text-dark:#1a1a2e;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background:linear-gradient(160deg, var(--bg1), var(--bg2) 55%, var(--bg3));
+    font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+    color:var(--white);
+  }
+  #app{
+    max-width:520px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    padding:18px 16px 40px 16px;
+  }
+  .hidden{display:none !important;}
+  h1{
+    font-size:clamp(24px,7vw,32px);
+    text-align:center;
+    margin:6px 0 4px 0;
+    background:linear-gradient(90deg, var(--accent), #ffd166);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+  }
+  .subtitle{
+    text-align:center;
+    color:#b9c7e6;
+    font-size:14px;
+    margin-bottom:22px;
+    line-height:1.5;
+  }
+  .sectionTitle{
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:1px;
+    color:#8fa8d6;
+    margin:18px 0 10px 0;
+    font-weight:700;
+  }
+  .categoryList{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .catOption{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    background:rgba(255,255,255,0.08);
+    border:2px solid rgba(255,255,255,0.14);
+    border-radius:14px;
+    padding:12px 14px;
+    cursor:pointer;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .catOption.selected{
+    border-color:var(--accent);
+    background:rgba(252,163,17,0.14);
+  }
+  .catOption .emoji{ font-size:22px; }
+  .catOption .info{ flex:1; }
+  .catOption .info b{ display:block; font-size:15px; }
+  .catOption .info span{ font-size:12px; color:#b9c7e6; }
+  .catOption .check{
+    width:22px;height:22px;border-radius:50%;
+    border:2px solid rgba(255,255,255,0.4);
+    display:flex; align-items:center; justify-content:center;
+    font-size:13px;
+  }
+  .catOption.selected .check{ background:var(--accent); border-color:var(--accent); color:#3a1e00; }
+
+  .rowOptions{
+    display:flex;
+    gap:10px;
+    margin-bottom:6px;
+  }
+  .pill{
+    flex:1;
+    text-align:center;
+    padding:10px 6px;
+    border-radius:12px;
+    background:rgba(255,255,255,0.08);
+    border:2px solid rgba(255,255,255,0.14);
+    cursor:pointer;
+    font-size:14px;
+    font-weight:600;
+  }
+  .pill.selected{ border-color:var(--good); background:rgba(6,214,160,0.16); }
+
+  .toggleRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:rgba(255,255,255,0.06);
+    border-radius:14px;
+    padding:12px 16px;
+    margin:14px 0;
+  }
+  .switch{
+    position:relative; width:46px; height:26px;
+    background:rgba(255,255,255,0.25);
+    border-radius:20px;
+    cursor:pointer;
+    transition:background .2s ease;
+  }
+  .switch.on{ background:var(--good); }
+  .switch .knob{
+    position:absolute; top:3px; left:3px;
+    width:20px; height:20px; border-radius:50%;
+    background:#fff;
+    transition:left .2s ease;
+  }
+  .switch.on .knob{ left:23px; }
+
+  button.mainBtn{
+    font-family:inherit;
+    font-size:17px;
+    font-weight:800;
+    padding:15px;
+    border-radius:50px;
+    border:none;
+    cursor:pointer;
+    background:linear-gradient(90deg, var(--accent), #ff9f1c);
+    color:#3a1e00;
+    box-shadow:0 6px 0 #c97e0c, 0 10px 20px rgba(0,0,0,0.35);
+    margin-top:20px;
+    transition:transform .08s ease;
+  }
+  button.mainBtn:active{ transform:translateY(6px); box-shadow:0 0 0 #c97e0c; }
+  button.mainBtn:disabled{ opacity:0.45; cursor:not-allowed; }
+
+  button.secondaryBtn{
+    font-family:inherit;
+    font-size:15px;
+    font-weight:700;
+    padding:12px;
+    border-radius:50px;
+    border:2px solid rgba(255,255,255,0.25);
+    cursor:pointer;
+    background:transparent;
+    color:#fff;
+    margin-top:10px;
+  }
+
+  /* ---------- Quiz screen ---------- */
+  #quizScreen .topBar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+    gap:10px;
+  }
+  .progressWrap{
+    flex:1;
+    height:10px;
+    background:rgba(255,255,255,0.15);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .progressFill{
+    height:100%;
+    background:linear-gradient(90deg, var(--good), #4cc9f0);
+    width:0%;
+    transition:width .3s ease;
+  }
+  .statPill{
+    background:rgba(255,255,255,0.1);
+    border-radius:10px;
+    padding:6px 10px;
+    font-size:13px;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  #timerBar{
+    height:6px;
+    background:rgba(255,255,255,0.15);
+    border-radius:6px;
+    margin-bottom:14px;
+    overflow:hidden;
+  }
+  #timerFill{
+    height:100%;
+    background:linear-gradient(90deg, var(--danger), var(--accent));
+    width:100%;
+  }
+  .catTag{
+    display:inline-block;
+    background:rgba(76,201,240,0.18);
+    color:#8fd9ff;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    padding:4px 10px;
+    border-radius:20px;
+    margin-bottom:10px;
+  }
+  .questionCard{
+    background:var(--card);
+    color:var(--text-dark);
+    border-radius:18px;
+    padding:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+  }
+  .questionText{
+    font-size:17px;
+    font-weight:700;
+    line-height:1.4;
+    margin-bottom:16px;
+  }
+  .optionBtn{
+    display:block;
+    width:100%;
+    text-align:left;
+    background:#f2f3f8;
+    border:2px solid transparent;
+    border-radius:12px;
+    padding:13px 16px;
+    margin-bottom:10px;
+    font-size:14.5px;
+    font-family:inherit;
+    cursor:pointer;
+    color:var(--text-dark);
+    transition:transform .06s ease;
+  }
+  .optionBtn:active{ transform:scale(0.98); }
+  .optionBtn.correct{ background:#d4f7ec; border-color:var(--good); font-weight:700; }
+  .optionBtn.wrong{ background:#fde0e6; border-color:var(--danger); font-weight:700; }
+  .optionBtn.disabledOpt{ pointer-events:none; opacity:0.75; }
+  .optionBtn.disabledOpt.correct, .optionBtn.disabledOpt.wrong{ opacity:1; }
+
+  .explainBox{
+    background:#eef2ff;
+    border-left:4px solid #4cc9f0;
+    border-radius:8px;
+    padding:12px 14px;
+    font-size:13.5px;
+    color:#2b2b45;
+    margin-top:8px;
+    line-height:1.5;
+    display:none;
+  }
+  .explainBox.show{ display:block; }
+
+  #nextBtn{
+    margin-top:16px;
+    width:100%;
+  }
+
+  /* ---------- Result screen ---------- */
+  .resultHero{
+    text-align:center;
+    margin:10px 0 20px 0;
+  }
+  .resultHero .emoji{ font-size:56px; }
+  .resultHero .pct{
+    font-size:44px;
+    font-weight:900;
+    color:var(--accent);
+  }
+  .resultHero .msg{
+    font-size:15px;
+    color:#cfe0ff;
+    margin-top:4px;
+  }
+  .statGrid{
+    display:flex;
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .statBox{
+    flex:1;
+    background:rgba(255,255,255,0.08);
+    border-radius:14px;
+    padding:14px;
+    text-align:center;
+  }
+  .statBox .n{ font-size:22px; font-weight:800; }
+  .statBox .l{ font-size:11px; color:#aebfe0; text-transform:uppercase; margin-top:2px; }
+
+  .reviewItem{
+    background:rgba(255,255,255,0.07);
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:10px;
+  }
+  .reviewItem .q{ font-weight:700; font-size:14px; margin-bottom:8px; }
+  .reviewItem .a{ font-size:13px; margin-bottom:3px; }
+  .reviewItem .a.wrong{ color:#ff8fa3; }
+  .reviewItem .a.right{ color:#6ee7c0; }
+  .reviewItem .exp{ font-size:12.5px; color:#b9c7e6; margin-top:6px; line-height:1.5; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ===================== START SCREEN ===================== -->
+  <div id="startScreen">
+    <h1>QUIZ ADS 🎓</h1>
+    <div class="subtitle">Revise os principais temas do primeiro semestre de Análise e Desenvolvimento de Sistemas.</div>
+
+    <div class="sectionTitle">Escolha os temas</div>
+    <div class="categoryList" id="categoryList"></div>
+
+    <div class="sectionTitle">Quantas perguntas?</div>
+    <div class="rowOptions" id="countRow">
+      <div class="pill" data-count="10">10</div>
+      <div class="pill" data-count="20">20</div>
+      <div class="pill" data-count="9999">Todas</div>
+    </div>
+
+    <div class="toggleRow">
+      <div>
+        <b>⏱ Modo desafio</b><br>
+        <span style="font-size:12px;color:#b9c7e6;">Cronômetro de 20s por pergunta</span>
+      </div>
+      <div class="switch" id="timerSwitch"><div class="knob"></div></div>
+    </div>
+
+    <button class="mainBtn" id="startBtn" disabled>▶ COMEÇAR QUIZ</button>
+  </div>
+
+  <!-- ===================== QUIZ SCREEN ===================== -->
+  <div id="quizScreen" class="hidden">
+    <div class="topBar">
+      <div class="statPill" id="questionCounter">1/10</div>
+      <div class="progressWrap"><div class="progressFill" id="progressFill"></div></div>
+      <div class="statPill" id="scoreCounter">🏆 0</div>
+    </div>
+    <div id="timerBar" class="hidden"><div id="timerFill"></div></div>
+
+    <div class="questionCard">
+      <span class="catTag" id="catTag">Categoria</span>
+      <div class="questionText" id="questionText">Pergunta...</div>
+      <div id="optionsWrap"></div>
+      <div class="explainBox" id="explainBox"></div>
+    </div>
+
+    <button class="mainBtn hidden" id="nextBtn">PRÓXIMA ➜</button>
+  </div>
+
+  <!-- ===================== RESULT SCREEN ===================== -->
+  <div id="resultScreen" class="hidden">
+    <div class="resultHero">
+      <div class="emoji" id="resultEmoji">🎉</div>
+      <div class="pct" id="resultPct">0%</div>
+      <div class="msg" id="resultMsg">Mensagem</div>
+    </div>
+    <div class="statGrid">
+      <div class="statBox"><div class="n" id="statCorrect">0</div><div class="l">Acertos</div></div>
+      <div class="statBox"><div class="n" id="statWrong">0</div><div class="l">Erros</div></div>
+      <div class="statBox"><div class="n" id="statTotal">0</div><div class="l">Total</div></div>
+    </div>
+
+    <div class="sectionTitle" id="reviewTitle">Revisão das que você errou</div>
+    <div id="reviewList"></div>
+
+    <button class="mainBtn" id="retryBtn">🔄 REFAZER COM OS MESMOS TEMAS</button>
+    <button class="secondaryBtn" id="homeBtn">⬅ ESCOLHER OUTROS TEMAS</button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+
+  // ============================================================
+  // BANCO DE QUESTÕES
+  // ============================================================
+  const BANK = {
+    logica: {
+      label: 'Lógica de Programação',
+      emoji: '🧩',
+      questions: [
+        { q:'O que é um algoritmo?', o:['Um tipo de variável','Uma sequência finita e ordenada de passos para resolver um problema','Um tipo de erro de sintaxe','Um componente físico do computador'], c:1, e:'Algoritmo é uma sequência lógica, finita e ordenada de instruções para resolver um problema ou executar uma tarefa.' },
+        { q:'Qual é a estrutura usada quando queremos repetir uma ação várias vezes?', o:['Estrutura sequencial','Estrutura condicional','Estrutura de repetição (laço)','Estrutura de dados'], c:2, e:'Estruturas de repetição (como FOR e WHILE) permitem executar um bloco de instruções várias vezes.' },
+        { q:'O que é uma variável em programação?', o:['Um valor que nunca muda','Um espaço de memória que armazena um valor que pode mudar durante a execução','Um tipo de função','Um símbolo de fluxograma'], c:1, e:'Variáveis são espaços de memória nomeados usados para armazenar dados que podem ser alterados durante a execução do programa.' },
+        { q:'Qual destes é um tipo de dado primitivo comum?', o:['Inteiro (int)','Fluxograma','Algoritmo','Pseudocódigo'], c:0, e:'Tipos primitivos incluem inteiro (int), ponto flutuante (float), texto (string) e booleano (bool).' },
+        { q:'Qual a diferença entre "=" e "==" na maioria das linguagens de programação?', o:['Não há diferença','"=" atribui um valor, "==" compara se dois valores são iguais','"==" atribui um valor, "=" compara','Ambos servem apenas para comparar'], c:1, e:'O operador "=" é de atribuição (guarda um valor na variável), enquanto "==" é de comparação (verifica igualdade).' },
+        { q:'O que a estrutura de repetição FOR normalmente é usada para fazer?', o:['Tomar uma decisão única','Repetir um bloco um número definido de vezes','Declarar uma variável','Finalizar o programa'], c:1, e:'O FOR é ideal quando já se sabe (ou pode calcular) quantas vezes o laço deve se repetir.' },
+        { q:'Qual a diferença entre WHILE e DO-WHILE?', o:['São exatamente iguais','No DO-WHILE, o bloco é executado pelo menos uma vez antes de testar a condição','No WHILE, a condição nunca é testada','DO-WHILE não existe em lógica de programação'], c:1, e:'No WHILE a condição é testada antes de executar o bloco; no DO-WHILE o bloco executa primeiro e a condição é testada depois, garantindo ao menos uma execução.' },
+        { q:'O que é pseudocódigo?', o:['Um vírus de computador','Uma forma de descrever um algoritmo em linguagem próxima do português, sem sintaxe rígida de uma linguagem real','Um tipo de hardware','O nome de uma linguagem de programação específica'], c:1, e:'Pseudocódigo é uma descrição informal e estruturada de um algoritmo, usada para planejar a lógica antes de programar em uma linguagem real.' },
+        { q:'O que caracteriza uma constante em programação?', o:['Um valor que muda a cada execução','Um valor fixo que não pode ser alterado durante a execução do programa','Um tipo de laço de repetição','Um comando de entrada de dados'], c:1, e:'Constantes armazenam valores que permanecem fixos durante toda a execução do programa, diferente das variáveis.' },
+        { q:'Os operadores lógicos E (AND), OU (OR) e NÃO (NOT) são usados para:', o:['Fazer contas matemáticas apenas','Combinar ou negar condições em estruturas de decisão','Declarar variáveis','Desenhar fluxogramas'], c:1, e:'Operadores lógicos combinam ou invertem valores booleanos (verdadeiro/falso), muito usados em condições de decisão (IF).' }
+      ]
+    },
+    algoritmos: {
+      label: 'Algoritmos e Fluxogramas',
+      emoji: '🔀',
+      questions: [
+        { q:'Em um fluxograma, o símbolo de losango (diamante) representa:', o:['Início ou fim do processo','Uma decisão (condição)','Uma entrada de dados','Uma operação de impressão'], c:1, e:'O losango é o símbolo padrão para representar decisões/condições (verdadeiro ou falso) em um fluxograma.' },
+        { q:'Em um fluxograma, o retângulo representa:', o:['Início ou fim','Uma decisão','Um processo ou ação a ser executada','Uma conexão entre páginas'], c:2, e:'O retângulo representa um processo, ou seja, uma ação ou cálculo que o algoritmo executa.' },
+        { q:'O símbolo oval (terminal) em um fluxograma indica:', o:['Uma repetição','O início ou fim do algoritmo','Uma leitura de dados','Uma comparação'], c:1, e:'O símbolo oval (terminal) marca o ponto de início e o ponto de término de um fluxograma.' },
+        { q:'O que é "refinamento sucessivo" (ou abordagem top-down) na criação de algoritmos?', o:['Escrever o código sem planejamento','Dividir um problema grande em subproblemas menores e mais simples até chegar a uma solução','Testar o programa de trás para frente','Um tipo de estrutura de repetição'], c:1, e:'O refinamento sucessivo consiste em decompor um problema complexo em partes menores e mais fáceis de resolver, indo do geral para o específico.' },
+        { q:'O que significa, de forma simples, a "complexidade de um algoritmo"?', o:['O tamanho do arquivo do programa','Uma medida de quantos recursos (tempo/memória) o algoritmo consome conforme a entrada cresce','A quantidade de comentários no código','O número de variáveis declaradas'], c:1, e:'Complexidade é uma estimativa de como o tempo (ou memória) de execução de um algoritmo cresce em relação ao tamanho da entrada.' },
+        { q:'Um "algoritmo de ordenação" serve para:', o:['Deletar dados de uma lista','Organizar elementos de uma coleção em uma ordem específica (crescente ou decrescente)','Criar novas variáveis','Desenhar fluxogramas automaticamente'], c:1, e:'Algoritmos de ordenação (como Bubble Sort, Quick Sort) reorganizam elementos de uma lista seguindo um critério, como ordem crescente.' },
+        { q:'Qual a principal diferença entre um vetor (array) e uma matriz?', o:['Não existe diferença','O vetor armazena dados em uma única dimensão (linha), a matriz em duas ou mais dimensões (linhas e colunas)','A matriz só armazena números, o vetor só texto','O vetor é mais rápido em qualquer situação'], c:1, e:'Um vetor é uma estrutura unidimensional (uma "fileira" de valores); uma matriz é uma estrutura bidimensional (ou mais), organizada em linhas e colunas.' },
+        { q:'O que é recursão em algoritmos?', o:['Um erro de programação','Quando uma função chama a si mesma para resolver um problema','Um tipo de variável global','Um símbolo de fluxograma'], c:1, e:'Recursão é a técnica em que uma função chama a si mesma, geralmente para dividir um problema em versões menores dele mesmo até um caso base.' }
+      ]
+    },
+    python: {
+      label: 'Python - Fundamentos',
+      emoji: '🐍',
+      questions: [
+        { q:'Como se declara uma variável chamada "idade" com valor 20 em Python?', o:['int idade = 20;','idade = 20','var idade == 20','declare idade as 20'], c:1, e:'Em Python não é preciso indicar o tipo nem usar ponto e vírgula: basta "idade = 20".' },
+        { q:'Qual função é usada para exibir algo na tela em Python?', o:['echo()','console.log()','print()','display()'], c:2, e:'A função print() é usada para exibir textos e valores no console em Python.' },
+        { q:'Qual tipo de dado representa texto em Python?', o:['int','float','bool','str'], c:3, e:'O tipo "str" (string) representa cadeias de texto em Python, escritas entre aspas simples ou duplas.' },
+        { q:'Como se faz um comentário de uma linha em Python?', o:['// comentário','<!-- comentário -->','# comentário','/* comentário */'], c:2, e:'Em Python, comentários de uma linha começam com o símbolo "#".' },
+        { q:'Qual a sintaxe correta de uma estrutura condicional simples em Python?', o:['if (x > 5) then','if x > 5:','when x > 5 do','if x > 5 then:'], c:1, e:'Em Python a sintaxe é "if condição:" seguida de um bloco indentado, sem parênteses obrigatórios nem "then".' },
+        { q:'Como se cria uma lista com os números 1, 2 e 3 em Python?', o:['lista = (1, 2, 3)','lista = {1, 2, 3}','lista = [1, 2, 3]','lista = <1, 2, 3>'], c:2, e:'Listas em Python são criadas usando colchetes, como em lista = [1, 2, 3].' },
+        { q:'O que a função len() faz em Python?', o:['Arredonda um número','Retorna o tamanho (quantidade de elementos) de uma lista, string, etc.','Converte texto em número','Cria uma nova variável'], c:1, e:'len() retorna o número de elementos de uma sequência, como o comprimento de uma string ou o tamanho de uma lista.' },
+        { q:'Para que serve a função range() em Python?', o:['Para ler dados do teclado','Para gerar uma sequência de números, muito usada em laços FOR','Para arredondar valores decimais','Para converter texto em maiúsculas'], c:1, e:'range() gera uma sequência de números, geralmente usada para controlar quantas vezes um laço "for" deve rodar.' },
+        { q:'Por que a indentação (espaços no início da linha) é importante em Python?', o:['É só estética, não tem função real','Ela define os blocos de código, substituindo chaves { } usadas em outras linguagens','Serve apenas para comentários','Só é usada dentro de listas'], c:1, e:'Em Python, a indentação define onde começa e termina um bloco de código (como dentro de um if, for ou função), sendo obrigatória e não apenas estética.' },
+        { q:'Qual função é usada para receber uma informação digitada pelo usuário em Python?', o:['get()','input()','read()','scan()'], c:1, e:'A função input() pausa o programa e aguarda o usuário digitar um valor, retornando-o como texto (string).' }
+      ]
+    },
+    fundamentos: {
+      label: 'Fundamentos de TI',
+      emoji: '💻',
+      questions: [
+        { q:'O que é hardware?', o:['Os programas instalados no computador','A parte física do computador (processador, memória, teclado, etc.)','Um tipo de vírus','A internet'], c:1, e:'Hardware é o conjunto de componentes físicos e tangíveis de um computador, como processador, memória RAM, teclado e monitor.' },
+        { q:'O que é software?', o:['A parte física do computador','Um conjunto de instruções e programas que fazem o hardware funcionar','Apenas o sistema operacional','Um cabo de rede'], c:1, e:'Software é o conjunto de programas e instruções (sistema operacional, aplicativos, etc.) que comandam o funcionamento do hardware.' },
+        { q:'Qual a principal função de um sistema operacional?', o:['Substituir o hardware','Gerenciar os recursos do computador e servir de ponte entre o usuário/aplicativos e o hardware','Criar vírus de proteção','Servir apenas para jogos'], c:1, e:'O sistema operacional (como Windows, Linux, macOS) gerencia os recursos de hardware e permite que outros programas funcionem corretamente.' },
+        { q:'Qual a diferença entre dado e informação?', o:['São sinônimos, não há diferença','Dado é um valor bruto sem contexto; informação é o dado processado e organizado, com significado','Informação é sempre um número; dado é sempre texto','Dado só existe em bancos de dados'], c:1, e:'Um dado é um valor isolado (ex: "30"), enquanto informação é o dado processado e contextualizado (ex: "a temperatura hoje é 30°C").' },
+        { q:'O que é um SGBD (Sistema de Gerenciamento de Banco de Dados)?', o:['Um tipo de vírus','Um software usado para armazenar, organizar e gerenciar dados de forma estruturada','Um componente de hardware','Uma linguagem de programação'], c:1, e:'Um SGBD (como MySQL, PostgreSQL) é um software que permite criar, consultar, atualizar e gerenciar bancos de dados.' },
+        { q:'O que caracteriza uma rede de computadores?', o:['Um único computador isolado','Dois ou mais dispositivos conectados entre si para compartilhar dados e recursos','Apenas cabos sem nenhum computador','Um tipo de software antivírus'], c:1, e:'Uma rede de computadores conecta dois ou mais dispositivos permitindo o compartilhamento de dados, arquivos e recursos entre eles.' },
+        { q:'O que é "computação em nuvem" (cloud computing)?', o:['Guardar arquivos apenas em pen drives','O uso de servidores remotos, acessados pela internet, para armazenar dados e rodar aplicações','Um tipo de vírus de computador','Uma linguagem de programação'], c:1, e:'Computação em nuvem é o uso de servidores e serviços disponibilizados pela internet, permitindo acessar dados e aplicações de qualquer lugar.' },
+        { q:'O que representa, de forma resumida, o ciclo de vida de desenvolvimento de software (SDLC)?', o:['Apenas a fase de programação do sistema','As etapas desde o planejamento, análise, projeto, desenvolvimento, testes até a manutenção de um sistema','Somente a fase de testes','O tempo de vida útil de um computador'], c:1, e:'O SDLC (Software Development Life Cycle) descreve as fases pelas quais um software passa: levantamento de requisitos, análise, projeto, implementação, testes, implantação e manutenção.' }
+      ]
+    },
+    matematica: {
+      label: 'Matemática para Computação',
+      emoji: '➗',
+      questions: [
+        { q:'O sistema binário utiliza quais dígitos?', o:['0 a 9','Apenas 0 e 1','A e B','1 a 10'], c:1, e:'O sistema binário é a base numérica usada pelos computadores, composto apenas pelos dígitos 0 e 1.' },
+        { q:'Qual é o valor decimal do número binário 1010?', o:['8','10','12','5'], c:1, e:'1010 em binário equivale a (1×8)+(0×4)+(1×2)+(0×1) = 10 em decimal.' },
+        { q:'O que estuda a lógica proposicional?', o:['A estrutura de dados em memória','Sentenças (proposições) que podem ser classificadas como verdadeiras ou falsas, e como elas se combinam','Apenas números decimais','A velocidade do processador'], c:1, e:'A lógica proposicional estuda proposições — frases que só podem ser verdadeiras ou falsas — e como combiná-las com operadores como E, OU e NÃO.' },
+        { q:'Na tabela verdade do operador E (AND), quando o resultado é verdadeiro?', o:['Quando pelo menos um dos valores é verdadeiro','Somente quando todos os valores envolvidos são verdadeiros','Sempre, independente dos valores','Nunca é verdadeiro'], c:1, e:'O operador AND (E) só resulta em verdadeiro quando TODAS as condições envolvidas são verdadeiras.' },
+        { q:'O que é um "conjunto" em matemática?', o:['Uma sequência de comandos de um programa','Uma coleção de elementos distintos, sem ordem definida','Um tipo de variável em Python','Um símbolo de fluxograma'], c:1, e:'Um conjunto é uma coleção de elementos distintos, sem repetição e sem uma ordem obrigatória, representado geralmente entre chaves { }.' },
+        { q:'Se um produto de R$ 200 tem 15% de desconto, qual o valor do desconto?', o:['R$ 15','R$ 20','R$ 30','R$ 50'], c:2, e:'15% de 200 é calculado como 200 × 0,15 = 30, ou seja, o desconto é de R$ 30.' },
+        { q:'Quanto é 2 elevado a 8 (2⁸)?', o:['16','64','128','256'], c:3, e:'2⁸ = 2×2×2×2×2×2×2×2 = 256, um valor muito comum em computação (ex: byte vai de 0 a 255).' },
+        { q:'O MDC (Máximo Divisor Comum) entre dois números representa:', o:['O maior número entre os dois','O maior número que divide ambos os números exatamente, sem deixar resto','A soma dos dois números','A diferença entre os dois números'], c:1, e:'O MDC é o maior número inteiro que divide exatamente (sem deixar resto) dois ou mais números.' }
+      ]
+    }
+  };
+
+  const CAT_KEYS = Object.keys(BANK);
+
+  // ============================================================
+  // ESTADO
+  // ============================================================
+  let selectedCats = new Set(CAT_KEYS); // todos marcados por padrão
+  let selectedCount = 10;
+  let timedMode = false;
+
+  let quizQuestions = [];
+  let currentIndex = 0;
+  let score = 0;
+  let answered = false;
+  let wrongAnswers = [];
+  let timerInterval = null;
+  let timeLeft = 20;
+
+  // ============================================================
+  // ELEMENTOS
+  // ============================================================
+  const startScreen = document.getElementById('startScreen');
+  const quizScreen = document.getElementById('quizScreen');
+  const resultScreen = document.getElementById('resultScreen');
+  const categoryList = document.getElementById('categoryList');
+  const countRow = document.getElementById('countRow');
+  const timerSwitch = document.getElementById('timerSwitch');
+  const startBtn = document.getElementById('startBtn');
+
+  // ---------- Build category selector ----------
+  function renderCategoryList(){
+    categoryList.innerHTML = '';
+    CAT_KEYS.forEach(key=>{
+      const cat = BANK[key];
+      const div = document.createElement('div');
+      div.className = 'catOption selected';
+      div.dataset.key = key;
+      div.innerHTML = `
+        <div class="emoji">${cat.emoji}</div>
+        <div class="info"><b>${cat.label}</b><span>${cat.questions.length} perguntas disponíveis</span></div>
+        <div class="check">✓</div>
+      `;
+      div.addEventListener('click', ()=>{
+        if(selectedCats.has(key)){
+          selectedCats.delete(key);
+          div.classList.remove('selected');
+          div.querySelector('.check').textContent = '';
+        } else {
+          selectedCats.add(key);
+          div.classList.add('selected');
+          div.querySelector('.check').textContent = '✓';
+        }
+        validateStart();
+      });
+      categoryList.appendChild(div);
+    });
+  }
+  renderCategoryList();
+
+  countRow.querySelectorAll('.pill').forEach(p=>{
+    if(p.dataset.count === '10') p.classList.add('selected');
+    p.addEventListener('click', ()=>{
+      countRow.querySelectorAll('.pill').forEach(x=>x.classList.remove('selected'));
+      p.classList.add('selected');
+      selectedCount = parseInt(p.dataset.count, 10);
+    });
+  });
+
+  timerSwitch.addEventListener('click', ()=>{
+    timedMode = !timedMode;
+    timerSwitch.classList.toggle('on', timedMode);
+  });
+
+  function validateStart(){
+    startBtn.disabled = selectedCats.size === 0;
+  }
+  validateStart();
+
+  // ---------- Utilities ----------
+  function shuffle(arr){
+    const a = arr.slice();
+    for(let i=a.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [a[i],a[j]] = [a[j],a[i]];
+    }
+    return a;
+  }
+
+  function buildQuizPool(){
+    let pool = [];
+    selectedCats.forEach(key=>{
+      BANK[key].questions.forEach(q=>{
+        pool.push(Object.assign({catKey:key, catLabel:BANK[key].label}, q));
+      });
+    });
+    pool = shuffle(pool);
+    if(selectedCount < pool.length) pool = pool.slice(0, selectedCount);
+    // shuffle options within each question, tracking correct answer text
+    pool.forEach(q=>{
+      const correctText = q.o[q.c];
+      const shuffledOptions = shuffle(q.o);
+      q.options = shuffledOptions;
+      q.correctIndex = shuffledOptions.indexOf(correctText);
+    });
+    return pool;
+  }
+
+  // ============================================================
+  // FLUXO DO QUIZ
+  // ============================================================
+  startBtn.addEventListener('click', ()=>{
+    quizQuestions = buildQuizPool();
+    currentIndex = 0;
+    score = 0;
+    wrongAnswers = [];
+    startScreen.classList.add('hidden');
+    quizScreen.classList.remove('hidden');
+    document.getElementById('timerBar').classList.toggle('hidden', !timedMode);
+    showQuestion();
+  });
+
+  function showQuestion(){
+    answered = false;
+    clearInterval(timerInterval);
+    const q = quizQuestions[currentIndex];
+    document.getElementById('questionCounter').textContent = (currentIndex+1) + '/' + quizQuestions.length;
+    document.getElementById('scoreCounter').textContent = '🏆 ' + score;
+    document.getElementById('progressFill').style.width = (currentIndex/quizQuestions.length*100) + '%';
+    document.getElementById('catTag').textContent = q.catLabel;
+    document.getElementById('questionText').textContent = q.q;
+
+    const wrap = document.getElementById('optionsWrap');
+    wrap.innerHTML = '';
+    q.options.forEach((opt, idx)=>{
+      const btn = document.createElement('button');
+      btn.className = 'optionBtn';
+      btn.textContent = opt;
+      btn.addEventListener('click', ()=> selectAnswer(idx));
+      wrap.appendChild(btn);
+    });
+
+    const explainBox = document.getElementById('explainBox');
+    explainBox.className = 'explainBox';
+    explainBox.textContent = '';
+
+    document.getElementById('nextBtn').classList.add('hidden');
+
+    if(timedMode){
+      timeLeft = 20;
+      updateTimerBar();
+      timerInterval = setInterval(()=>{
+        timeLeft -= 0.1;
+        updateTimerBar();
+        if(timeLeft <= 0){
+          clearInterval(timerInterval);
+          if(!answered) selectAnswer(-1);
+        }
+      }, 100);
+    }
+  }
+
+  function updateTimerBar(){
+    const pct = Math.max(0, (timeLeft/20)*100);
+    document.getElementById('timerFill').style.width = pct + '%';
+  }
+
+  function selectAnswer(idx){
+    if(answered) return;
+    answered = true;
+    clearInterval(timerInterval);
+    const q = quizQuestions[currentIndex];
+    const buttons = document.querySelectorAll('.optionBtn');
+    buttons.forEach((btn,i)=>{
+      btn.classList.add('disabledOpt');
+      if(i === q.correctIndex) btn.classList.add('correct');
+      else if(i === idx) btn.classList.add('wrong');
+    });
+
+    if(idx === q.correctIndex){
+      score++;
+    } else {
+      wrongAnswers.push({
+        question: q.q,
+        yourAnswer: idx>=0 ? q.options[idx] : '(tempo esgotado)',
+        correctAnswer: q.options[q.correctIndex],
+        explanation: q.e
+      });
+    }
+
+    const explainBox = document.getElementById('explainBox');
+    explainBox.textContent = '💡 ' + q.e;
+    explainBox.classList.add('show');
+
+    document.getElementById('scoreCounter').textContent = '🏆 ' + score;
+    document.getElementById('nextBtn').classList.remove('hidden');
+  }
+
+  document.getElementById('nextBtn').addEventListener('click', ()=>{
+    currentIndex++;
+    if(currentIndex >= quizQuestions.length){
+      showResults();
+    } else {
+      showQuestion();
+    }
+  });
+
+  function showResults(){
+    quizScreen.classList.add('hidden');
+    resultScreen.classList.remove('hidden');
+    const total = quizQuestions.length;
+    const pct = Math.round((score/total)*100);
+    document.getElementById('resultPct').textContent = pct + '%';
+    document.getElementById('statCorrect').textContent = score;
+    document.getElementById('statWrong').textContent = total-score;
+    document.getElementById('statTotal').textContent = total;
+
+    let emoji, msg;
+    if(pct >= 90){ emoji='🏆'; msg='Excelente! Você domina esse conteúdo!'; }
+    else if(pct >= 70){ emoji='🎉'; msg='Muito bom! Só faltam alguns detalhes.'; }
+    else if(pct >= 50){ emoji='💪'; msg='Bom começo! Vale revisar os temas errados.'; }
+    else { emoji='📚'; msg='Continue estudando, a prática leva à perfeição!'; }
+    document.getElementById('resultEmoji').textContent = emoji;
+    document.getElementById('resultMsg').textContent = msg;
+
+    const reviewList = document.getElementById('reviewList');
+    const reviewTitle = document.getElementById('reviewTitle');
+    reviewList.innerHTML = '';
+    if(wrongAnswers.length === 0){
+      reviewTitle.textContent = 'Você acertou tudo! 🙌';
+    } else {
+      reviewTitle.textContent = 'Revisão das que você errou';
+      wrongAnswers.forEach(w=>{
+        const div = document.createElement('div');
+        div.className = 'reviewItem';
+        div.innerHTML = `
+          <div class="q">${w.question}</div>
+          <div class="a wrong">✗ Sua resposta: ${w.yourAnswer}</div>
+          <div class="a right">✓ Correta: ${w.correctAnswer}</div>
+          <div class="exp">💡 ${w.explanation}</div>
+        `;
+        reviewList.appendChild(div);
+      });
+    }
+  }
+
+  document.getElementById('retryBtn').addEventListener('click', ()=>{
+    resultScreen.classList.add('hidden');
+    quizQuestions = buildQuizPool();
+    currentIndex = 0;
+    score = 0;
+    wrongAnswers = [];
+    quizScreen.classList.remove('hidden');
+    showQuestion();
+  });
+
+  document.getElementById('homeBtn').addEventListener('click', ()=>{
+    resultScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
+  });
+
+})();
+</script>
+</body>
+</html>
